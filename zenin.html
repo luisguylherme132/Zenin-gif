@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZENIN — vídeo e foto em gif</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+<style>
+  :root{
+    --bg:#0a0810;
+    --bg-2:#0f0c17;
+    --panel:#161120;
+    --panel-2:#1c1628;
+    --line: rgba(201,162,39,.22);
+    --line-strong: rgba(201,162,39,.45);
+    --gold:#c9a227;
+    --gold-soft:#e2c463;
+    --crimson:#8f1f3f;
+    --crimson-soft:#b83b5e;
+    --ink:#efe8da;
+    --muted:#89808f;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{background:var(--bg); color:var(--ink); font-family:'Zen Kaku Gothic New', sans-serif;}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -5%, rgba(143,31,63,.18), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(201,162,39,.10), transparent 55%),
+      var(--bg);
+    overflow-x:hidden;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+  }
+
+  /* ---------- background seal texture ---------- */
+  .seal-bg{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    opacity:.05;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 78px, var(--gold) 78px, var(--gold) 79px),
+      repeating-linear-gradient(90deg, transparent, transparent 78px, var(--gold) 78px, var(--gold) 79px);
+  }
+
+  .wrap{position:relative; z-index:1; max-width:980px; margin:0 auto; padding:0 24px 90px;}
+
+  /* ---------- hero ---------- */
+  header.hero{
+    padding:56px 0 34px;
+    text-align:center;
+    position:relative;
+  }
+  .crest{
+    width:58px; height:58px; margin:0 auto 22px;
+    position:relative;
+  }
+  .crest svg{width:100%; height:100%; display:block;}
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    color:var(--gold-soft);
+    margin-bottom:14px;
+  }
+  h1.title{
+    font-family:'Shippori Mincho', serif;
+    font-weight:800;
+    font-size:clamp(52px, 12vw, 104px);
+    letter-spacing:.06em;
+    line-height:1;
+    background:linear-gradient(180deg, #f5ead0 0%, var(--gold) 55%, var(--crimson-soft) 130%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-shadow: 0 0 60px rgba(201,162,39,.15);
+  }
+  .kanji-mark{
+    font-family:'Shippori Mincho', serif;
+    font-size:15px;
+    color:var(--muted);
+    letter-spacing:.5em;
+    margin-top:10px;
+  }
+  p.tagline{
+    margin-top:20px;
+    color:var(--muted);
+    font-size:15px;
+    max-width:420px;
+    margin-left:auto; margin-right:auto;
+    line-height:1.6;
+  }
+  p.tagline b{color:var(--ink); font-weight:500;}
+
+  .divider{
+    display:flex; align-items:center; gap:14px;
+    margin:38px 0;
+    color:var(--gold);
+  }
+  .divider .rule{flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--line-strong), transparent);}
+  .divider .mon{
+    width:9px;height:9px; border:1px solid var(--gold); transform:rotate(45deg); flex-shrink:0;
+    box-shadow: 0 0 10px rgba(201,162,39,.25);
+  }
+
+  /* ---------- tabs ---------- */
+  .tabs{
+    display:flex; gap:2px; background:var(--panel-2);
+    border:1px solid var(--line); padding:4px; max-width:400px; margin:0 auto 30px;
+  }
+  .tab-btn{
+    flex:1; padding:12px 10px; background:transparent; border:none; cursor:pointer;
+    font-family:'Zen Kaku Gothic New', sans-serif; font-weight:700; font-size:13px;
+    letter-spacing:.06em; color:var(--muted); transition:all .25s ease;
+  }
+  .tab-btn.active{
+    background:linear-gradient(180deg, var(--crimson), #6e1731);
+    color:#f6ece0;
+    box-shadow: inset 0 0 0 1px rgba(201,162,39,.3);
+  }
+  .tab-btn:not(.active):hover{color:var(--ink);}
+
+  .panel-section{display:none;}
+  .panel-section.active{display:block; animation:fadeUp .4s ease;}
+  @keyframes fadeUp{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+
+  /* ---------- card ---------- */
+  .card{
+    background:linear-gradient(180deg, var(--panel), var(--bg-2));
+    border:1px solid var(--line);
+    padding:28px;
+    position:relative;
+  }
+  .card::before{
+    content:''; position:absolute; top:-1px; left:-1px; width:16px; height:16px;
+    border-top:1px solid var(--gold); border-left:1px solid var(--gold);
+  }
+  .card::after{
+    content:''; position:absolute; bottom:-1px; right:-1px; width:16px; height:16px;
+    border-bottom:1px solid var(--gold); border-right:1px solid var(--gold);
+  }
+
+  .drop{
+    border:1px dashed var(--line-strong);
+    padding:38px 20px;
+    text-align:center;
+    cursor:pointer;
+    transition:all .25s ease;
+    background:rgba(201,162,39,.02);
+  }
+  .drop:hover, .drop.dragover{
+    border-color:var(--gold); background:rgba(201,162,39,.06);
+  }
+  .drop .glyph{font-size:28px; margin-bottom:10px; color:var(--gold-soft); font-family:'Shippori Mincho',serif;}
+  .drop .drop-label{font-weight:700; font-size:14px; margin-bottom:5px;}
+  .drop .drop-sub{font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+  input[type="file"]{display:none;}
+
+  .file-info{
+    margin-top:16px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--gold-soft);
+    display:none; align-items:center; gap:8px;
+  }
+  .file-info.show{display:flex;}
+
+  /* thumbnails for photo mode */
+  .thumbs{
+    display:flex; flex-wrap:wrap; gap:10px; margin-top:16px;
+  }
+  .thumb{
+    width:74px; height:74px; position:relative; border:1px solid var(--line);
+    overflow:hidden; flex-shrink:0;
+  }
+  .thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .thumb .idx{
+    position:absolute; top:2px; left:2px; background:rgba(10,8,16,.8);
+    color:var(--gold-soft); font-family:'JetBrains Mono',monospace; font-size:9px; padding:1px 4px;
+  }
+  .thumb .rm{
+    position:absolute; top:2px; right:2px; background:rgba(143,31,63,.85);
+    color:#fff; font-size:10px; width:15px; height:15px; line-height:15px; text-align:center;
+    cursor:pointer;
+  }
+
+  /* ---------- controls ---------- */
+  .controls{
+    display:grid; grid-template-columns:1fr 1fr; gap:18px;
+    margin-top:24px;
+  }
+  .field{display:flex; flex-direction:column; gap:8px;}
+  .field.full{grid-column:1/-1;}
+  .field label{
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--muted);
+    display:flex; justify-content:space-between;
+  }
+  .field label span.val{color:var(--gold-soft);}
+  input[type="range"]{
+    -webkit-appearance:none; width:100%; height:2px; background:var(--line-strong); outline:none;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:14px; height:14px; border-radius:50%;
+    background:var(--gold); cursor:pointer; box-shadow:0 0 8px rgba(201,162,39,.5);
+  }
+  input[type="number"]{
+    background:var(--bg-2); border:1px solid var(--line); color:var(--ink);
+    padding:9px 10px; font-family:'JetBrains Mono',monospace; font-size:13px; width:100%;
+  }
+  input[type="number"]:focus, input[type="range"]:focus{outline:1px solid var(--gold);}
+
+  .btn{
+    width:100%; margin-top:26px; padding:16px; border:none; cursor:pointer;
+    background:linear-gradient(180deg, var(--crimson-soft), var(--crimson));
+    color:#fbf3e6; font-weight:700; font-size:14px; letter-spacing:.1em; text-transform:uppercase;
+    font-family:'Zen Kaku Gothic New',sans-serif;
+    box-shadow: inset 0 0 0 1px rgba(201,162,39,.35);
+    transition:filter .2s ease, transform .2s ease;
+  }
+  .btn:hover:not(:disabled){filter:brightness(1.12);}
+  .btn:active:not(:disabled){transform:scale(.995);}
+  .btn:disabled{opacity:.4; cursor:not-allowed;}
+  .btn:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
+
+  /* ---------- progress / seal ---------- */
+  .process{
+    display:none; margin-top:26px; text-align:center;
+  }
+  .process.show{display:block;}
+  .seal-spin{
+    width:56px; height:56px; margin:0 auto 14px; position:relative;
+  }
+  .seal-spin svg{width:100%; height:100%; animation:spin 2.4s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .seal-spin .kj{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:'Shippori Mincho',serif; font-size:20px; color:var(--gold-soft);
+  }
+  .progress-track{
+    height:2px; background:var(--line); width:100%; overflow:hidden; margin-top:14px;
+  }
+  .progress-fill{
+    height:100%; width:0%; background:linear-gradient(90deg, var(--crimson), var(--gold)); transition:width .2s ease;
+  }
+  .process-label{
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); margin-top:10px; letter-spacing:.08em;
+  }
+
+  /* ---------- result ---------- */
+  .result{display:none; margin-top:28px;}
+  .result.show{display:block; animation:fadeUp .5s ease;}
+  .result img{width:100%; display:block; border:1px solid var(--line);}
+  .result-actions{display:flex; gap:12px; margin-top:14px;}
+  .dl-btn, .again-btn{
+    flex:1; text-align:center; padding:13px; text-decoration:none;
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+    border:1px solid var(--line-strong); color:var(--ink); cursor:pointer; background:transparent;
+  }
+  .dl-btn{background:var(--gold); color:#1a1409; font-weight:700; border-color:var(--gold);}
+  .dl-btn:hover{filter:brightness(1.08);}
+  .again-btn:hover{border-color:var(--gold);}
+
+  video.preview-vid, canvas#work-canvas{display:none;}
+
+  footer{
+    text-align:center; margin-top:60px; color:var(--muted); font-size:11.5px;
+    font-family:'JetBrains Mono',monospace; letter-spacing:.05em;
+  }
+  footer .fmark{color:var(--gold-soft); margin-bottom:6px; font-family:'Shippori Mincho',serif; font-size:13px; letter-spacing:.3em;}
+</style>
+</head>
+<body>
+
+<div class="seal-bg"></div>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="crest">
+      <svg viewBox="0 0 58 58" fill="none">
+        <circle cx="29" cy="29" r="27" stroke="#c9a227" stroke-width="1" opacity=".6"/>
+        <circle cx="29" cy="29" r="20" stroke="#8f1f3f" stroke-width="1" opacity=".5"/>
+        <path d="M29 9 L29 49 M9 29 L49 29" stroke="#c9a227" stroke-width="1" opacity=".4"/>
+        <path d="M29 15 L37 29 L29 43 L21 29 Z" stroke="#e2c463" stroke-width="1.3"/>
+      </svg>
+    </div>
+    <div class="eyebrow">conversão selada · 100% local</div>
+    <h1 class="title">ZENIN</h1>
+    <div class="kanji-mark">呪 術 変 換</div>
+    <p class="tagline">Transforme <b>vídeo</b> ou <b>fotos</b> em <b>GIF</b> direto no navegador — sem upload, sem servidor, sem espera de fila.</p>
+  </header>
+
+  <div class="divider"><div class="rule"></div><div class="mon"></div><div class="rule"></div></div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="video" role="tab" aria-selected="true">vídeo → gif</button>
+    <button class="tab-btn" data-tab="photo" role="tab" aria-selected="false">fotos → gif</button>
+  </div>
+
+  <!-- ===================== VIDEO PANEL ===================== -->
+  <section class="panel-section active" id="panel-video">
+    <div class="card">
+      <div class="drop" id="drop-video">
+        <div class="glyph">影</div>
+        <div class="drop-label">Solte um vídeo aqui ou toque para escolher</div>
+        <div class="drop-sub">MP4 · WEBM · MOV — processado localmente</div>
+        <input type="file" id="input-video" accept="video/*">
+      </div>
+      <div class="file-info" id="video-file-info"></div>
+
+      <div class="controls" id="video-controls" style="display:none;">
+        <div class="field full">
+          <label>Início <span class="val" id="lbl-start">0.0s</span></label>
+          <input type="range" id="range-start" min="0" max="0" step="0.1" value="0">
+        </div>
+        <div class="field full">
+          <label>Fim <span class="val" id="lbl-end">0.0s</span></label>
+          <input type="range" id="range-end" min="0" max="0" step="0.1" value="0">
+        </div>
+        <div class="field">
+          <label>FPS <span class="val" id="lbl-fps">10</span></label>
+          <input type="range" id="range-fps" min="4" max="24" step="1" value="10">
+        </div>
+        <div class="field">
+          <label>Largura (px)</label>
+          <input type="number" id="input-width" value="480" min="80" max="1280" step="10">
+        </div>
+      </div>
+
+      <button class="btn" id="btn-convert-video" disabled>gerar gif</button>
+
+      <div class="process" id="process-video">
+        <div class="seal-spin">
+          <svg viewBox="0 0 56 56" fill="none">
+            <circle cx="28" cy="28" r="25" stroke="#8f1f3f" stroke-width="1.6" stroke-dasharray="4 6"/>
+            <circle cx="28" cy="28" r="18" stroke="#c9a227" stroke-width="1" stroke-dasharray="2 4"/>
+          </svg>
+          <div class="kj">呪</div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progress-video"></div></div>
+        <div class="process-label" id="process-label-video">capturando quadros…</div>
+      </div>
+
+      <div class="result" id="result-video">
+        <img id="result-img-video" alt="GIF gerado">
+        <div class="result-actions">
+          <a class="dl-btn" id="dl-video" download="zenin.gif">baixar gif</a>
+          <button class="again-btn" id="again-video">converter outro</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PHOTO PANEL ===================== -->
+  <section class="panel-section" id="panel-photo">
+    <div class="card">
+      <div class="drop" id="drop-photo">
+        <div class="glyph">符</div>
+        <div class="drop-label">Solte fotos aqui ou toque para escolher</div>
+        <div class="drop-sub">JPG · PNG · WEBP — escolha várias para animar</div>
+        <input type="file" id="input-photo" accept="image/*" multiple>
+      </div>
+
+      <div class="thumbs" id="photo-thumbs"></div>
+
+      <div class="controls" id="photo-controls" style="display:none;">
+        <div class="field">
+          <label>Duração por quadro <span class="val" id="lbl-delay">300ms</span></label>
+          <input type="range" id="range-delay" min="40" max="1000" step="10" value="300">
+        </div>
+        <div class="field">
+          <label>Largura (px)</label>
+          <input type="number" id="input-width-photo" value="480" min="80" max="1280" step="10">
+        </div>
+        <div class="field full">
+          <label style="justify-content:flex-start; gap:8px;">
+            <input type="checkbox" id="chk-loop" checked style="width:auto;"> repetir em loop
+          </label>
+        </div>
+      </div>
+
+      <button class="btn" id="btn-convert-photo" disabled>gerar gif</button>
+
+      <div class="process" id="process-photo">
+        <div class="seal-spin">
+          <svg viewBox="0 0 56 56" fill="none">
+            <circle cx="28" cy="28" r="25" stroke="#8f1f3f" stroke-width="1.6" stroke-dasharray="4 6"/>
+            <circle cx="28" cy="28" r="18" stroke="#c9a227" stroke-width="1" stroke-dasharray="2 4"/>
+          </svg>
+          <div class="kj">符</div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progress-photo"></div></div>
+        <div class="process-label" id="process-label-photo">selando quadros…</div>
+      </div>
+
+      <div class="result" id="result-photo">
+        <img id="result-img-photo" alt="GIF gerado">
+        <div class="result-actions">
+          <a class="dl-btn" id="dl-photo" download="zenin.gif">baixar gif</a>
+          <button class="again-btn" id="again-photo">converter outro</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="fmark">禪 院</div>
+    zenin — tudo roda no seu navegador, nada é enviado a servidores
+  </footer>
+</div>
+
+<video class="preview-vid" id="preview-vid" muted playsinline></video>
+<canvas id="work-canvas"></canvas>
+
+<script>
+const GIF_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js";
+let GIF_WORKER_BLOB = null;
+async function getWorkerScript(){
+  if(GIF_WORKER_BLOB) return GIF_WORKER_BLOB;
+  const res = await fetch(GIF_WORKER_URL);
+  const text = await res.text();
+  const blob = new Blob([text], {type:'application/javascript'});
+  GIF_WORKER_BLOB = URL.createObjectURL(blob);
+  return GIF_WORKER_BLOB;
+}
+
+/* ---------- tab switching ---------- */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.remove('active'); b.setAttribute('aria-selected','false');});
+    btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+    document.querySelectorAll('.panel-section').forEach(p=>p.classList.remove('active'));
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ================= VIDEO MODE ================= */
+const dropVideo = document.getElementById('drop-video');
+const inputVideo = document.getElementById('input-video');
+const videoFileInfo = document.getElementById('video-file-info');
+const videoControls = document.getElementById('video-controls');
+const previewVid = document.getElementById('preview-vid');
+const rangeStart = document.getElementById('range-start');
+const rangeEnd = document.getElementById('range-end');
+const lblStart = document.getElementById('lbl-start');
+const lblEnd = document.getElementById('lbl-end');
+const rangeFps = document.getElementById('range-fps');
+const lblFps = document.getElementById('lbl-fps');
+const inputWidth = document.getElementById('input-width');
+const btnConvertVideo = document.getElementById('btn-convert-video');
+const processVideo = document.getElementById('process-video');
+const progressVideo = document.getElementById('progress-video');
+const processLabelVideo = document.getElementById('process-label-video');
+const resultVideo = document.getElementById('result-video');
+const resultImgVideo = document.getElementById('result-img-video');
+const dlVideo = document.getElementById('dl-video');
+const againVideo = document.getElementById('again-video');
+
+function setupDrop(dropEl, inputEl, onFiles){
+  dropEl.addEventListener('click', ()=>inputEl.click());
+  dropEl.addEventListener('dragover', e=>{e.preventDefault(); dropEl.classList.add('dragover');});
+  dropEl.addEventListener('dragleave', ()=>dropEl.classList.remove('dragover'));
+  dropEl.addEventListener('drop', e=>{
+    e.preventDefault(); dropEl.classList.remove('dragover');
+    if(e.dataTransfer.files.length) onFiles(e.dataTransfer.files);
+  });
+  inputEl.addEventListener('change', e=>{
+    if(e.target.files.length) onFiles(e.target.files);
+  });
+}
+
+let videoFile = null;
+setupDrop(dropVideo, inputVideo, files=>{
+  videoFile = files[0];
+  if(!videoFile) return;
+  videoFileInfo.textContent = videoFile.name + ' · ' + (videoFile.size/1024/1024).toFixed(2) + ' MB';
+  videoFileInfo.classList.add('show');
+  const url = URL.createObjectURL(videoFile);
+  previewVid.src = url;
+  previewVid.onloadedmetadata = ()=>{
+    rangeStart.max = previewVid.duration.toFixed(1);
+    rangeEnd.max = previewVid.duration.toFixed(1);
+    rangeStart.value = 0;
+    rangeEnd.value = Math.min(previewVid.duration, 5).toFixed(1);
+    lblStart.textContent = '0.0s';
+    lblEnd.textContent = rangeEnd.value + 's';
+    videoControls.style.display = 'grid';
+    btnConvertVideo.disabled = false;
+    resultVideo.classList.remove('show');
+  };
+});
+
+rangeStart.addEventListener('input', ()=>{
+  if(parseFloat(rangeStart.value) >= parseFloat(rangeEnd.value)){
+    rangeStart.value = Math.max(0, parseFloat(rangeEnd.value)-0.1).toFixed(1);
+  }
+  lblStart.textContent = parseFloat(rangeStart.value).toFixed(1)+'s';
+});
+rangeEnd.addEventListener('input', ()=>{
+  if(parseFloat(rangeEnd.value) <= parseFloat(rangeStart.value)){
+    rangeEnd.value = (parseFloat(rangeStart.value)+0.1).toFixed(1);
+  }
+  lblEnd.textContent = parseFloat(rangeEnd.value).toFixed(1)+'s';
+});
+rangeFps.addEventListener('input', ()=>{ lblFps.textContent = rangeFps.value; });
+
+function seekTo(video, time){
+  return new Promise(resolve=>{
+    const onSeeked = ()=>{ video.removeEventListener('seeked', onSeeked); resolve(); };
+    video.addEventListener('seeked', onSeeked);
+    video.currentTime = time;
+  });
+}
+
+btnConvertVideo.addEventListener('click', async ()=>{
+  if(!videoFile) return;
+  btnConvertVideo.disabled = true;
+  processVideo.classList.add('show');
+  resultVideo.classList.remove('show');
+  progressVideo.style.width = '0%';
+
+  const start = parseFloat(rangeStart.value);
+  const end = parseFloat(rangeEnd.value);
+  const fps = parseInt(rangeFps.value);
+  const targetW = parseInt(inputWidth.value) || 480;
+
+  const vw = previewVid.videoWidth, vh = previewVid.videoHeight;
+  const targetH = Math.round(targetW * (vh/vw));
+
+  const canvas = document.getElementById('work-canvas');
+  canvas.width = targetW; canvas.height = targetH;
+  const ctx = canvas.getContext('2d');
+
+  processLabelVideo.textContent = 'preparando…';
+  let workerScript;
+  try{
+    workerScript = await getWorkerScript();
+  }catch(err){
+    processLabelVideo.textContent = 'erro ao carregar o conversor — verifique sua conexão';
+    processVideo.classList.remove('show');
+    btnConvertVideo.disabled = false;
+    return;
+  }
+
+  const gif = new GIF({
+    workers:2,
+    quality:10,
+    width:targetW,
+    height:targetH,
+    workerScript: workerScript
+  });
+
+  const frameDelay = Math.round(1000/fps);
+  const totalFrames = Math.max(1, Math.floor((end-start)*fps));
+
+  processLabelVideo.textContent = 'capturando quadros… 0/'+totalFrames;
+
+  for(let i=0;i<totalFrames;i++){
+    const t = start + (i/fps);
+    await seekTo(previewVid, Math.min(t, end));
+    ctx.drawImage(previewVid, 0, 0, targetW, targetH);
+    gif.addFrame(ctx, {copy:true, delay:frameDelay});
+    progressVideo.style.width = ((i+1)/totalFrames*45)+'%';
+    processLabelVideo.textContent = 'capturando quadros… '+(i+1)+'/'+totalFrames;
+  }
+
+  gif.on('progress', p=>{
+    progressVideo.style.width = (45 + p*55)+'%';
+    processLabelVideo.textContent = 'selando gif… '+Math.round(p*100)+'%';
+  });
+
+  gif.on('finished', blob=>{
+    const url = URL.createObjectURL(blob);
+    resultImgVideo.src = url;
+    dlVideo.href = url;
+    processVideo.classList.remove('show');
+    resultVideo.classList.add('show');
+    btnConvertVideo.disabled = false;
+  });
+
+  gif.render();
+});
+
+againVideo.addEventListener('click', ()=>{
+  resultVideo.classList.remove('show');
+  videoFile = null;
+  inputVideo.value = '';
+  videoFileInfo.classList.remove('show');
+  videoControls.style.display = 'none';
+  btnConvertVideo.disabled = true;
+});
+
+/* ================= PHOTO MODE ================= */
+const dropPhoto = document.getElementById('drop-photo');
+const inputPhoto = document.getElementById('input-photo');
+const photoThumbs = document.getElementById('photo-thumbs');
+const photoControls = document.getElementById('photo-controls');
+const btnConvertPhoto = document.getElementById('btn-convert-photo');
+const rangeDelay = document.getElementById('range-delay');
+const lblDelay = document.getElementById('lbl-delay');
+const inputWidthPhoto = document.getElementById('input-width-photo');
+const processPhoto = document.getElementById('process-photo');
+const progressPhoto = document.getElementById('progress-photo');
+const processLabelPhoto = document.getElementById('process-label-photo');
+const resultPhoto = document.getElementById('result-photo');
+const resultImgPhoto = document.getElementById('result-img-photo');
+const dlPhoto = document.getElementById('dl-photo');
+const againPhoto = document.getElementById('again-photo');
+
+let photoFiles = [];
+
+function renderThumbs(){
+  photoThumbs.innerHTML = '';
+  photoFiles.forEach((f, i)=>{
+    const url = URL.createObjectURL(f);
+    const div = document.createElement('div');
+    div.className = 'thumb';
+    div.innerHTML = '<img src="'+url+'"><div class="idx">'+(i+1)+'</div><div class="rm" data-i="'+i+'">×</div>';
+    photoThumbs.appendChild(div);
+  });
+  photoThumbs.querySelectorAll('.rm').forEach(el=>{
+    el.addEventListener('click', e=>{
+      const i = parseInt(e.target.dataset.i);
+      photoFiles.splice(i,1);
+      renderThumbs();
+      updatePhotoState();
+    });
+  });
+}
+
+function updatePhotoState(){
+  const has = photoFiles.length >= 1;
+  photoControls.style.display = has ? 'grid' : 'none';
+  btnConvertPhoto.disabled = !has;
+}
+
+setupDrop(dropPhoto, inputPhoto, files=>{
+  photoFiles = photoFiles.concat(Array.from(files));
+  renderThumbs();
+  updatePhotoState();
+  resultPhoto.classList.remove('show');
+});
+
+rangeDelay.addEventListener('input', ()=>{ lblDelay.textContent = rangeDelay.value+'ms'; });
+
+function loadImage(file){
+  return new Promise((resolve,reject)=>{
+    const img = new Image();
+    img.onload = ()=>resolve(img);
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+btnConvertPhoto.addEventListener('click', async ()=>{
+  if(photoFiles.length < 1) return;
+  btnConvertPhoto.disabled = true;
+  processPhoto.classList.add('show');
+  resultPhoto.classList.remove('show');
+  progressPhoto.style.width = '0%';
+
+  const delay = parseInt(rangeDelay.value);
+  const targetW = parseInt(inputWidthPhoto.value) || 480;
+  const loop = document.getElementById('chk-loop').checked ? 0 : -1;
+
+  const firstImg = await loadImage(photoFiles[0]);
+  const targetH = Math.round(targetW * (firstImg.height/firstImg.width));
+
+  const canvas = document.getElementById('work-canvas');
+  canvas.width = targetW; canvas.height = targetH;
+  const ctx = canvas.getContext('2d');
+
+  processLabelPhoto.textContent = 'preparando…';
+  let workerScript;
+  try{
+    workerScript = await getWorkerScript();
+  }catch(err){
+    processLabelPhoto.textContent = 'erro ao carregar o conversor — verifique sua conexão';
+    processPhoto.classList.remove('show');
+    btnConvertPhoto.disabled = false;
+    return;
+  }
+
+  const gif = new GIF({
+    workers:2,
+    quality:10,
+    width:targetW,
+    height:targetH,
+    repeat: loop,
+    workerScript: workerScript
+  });
+
+  for(let i=0;i<photoFiles.length;i++){
+    const img = i===0 ? firstImg : await loadImage(photoFiles[i]);
+    ctx.clearRect(0,0,targetW,targetH);
+    ctx.drawImage(img, 0, 0, targetW, targetH);
+    gif.addFrame(ctx, {copy:true, delay:delay});
+    progressPhoto.style.width = ((i+1)/photoFiles.length*40)+'%';
+    processLabelPhoto.textContent = 'lendo fotos… '+(i+1)+'/'+photoFiles.length;
+  }
+
+  gif.on('progress', p=>{
+    progressPhoto.style.width = (40 + p*60)+'%';
+    processLabelPhoto.textContent = 'selando gif… '+Math.round(p*100)+'%';
+  });
+
+  gif.on('finished', blob=>{
+    const url = URL.createObjectURL(blob);
+    resultImgPhoto.src = url;
+    dlPhoto.href = url;
+    processPhoto.classList.remove('show');
+    resultPhoto.classList.add('show');
+    btnConvertPhoto.disabled = false;
+  });
+
+  gif.render();
+});
+
+againPhoto.addEventListener('click', ()=>{
+  resultPhoto.classList.remove('show');
+  photoFiles = [];
+  inputPhoto.value = '';
+  renderThumbs();
+  updatePhotoState();
+});
+</script>
+</body>
+</html>
+
