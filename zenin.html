@@ -95,6 +95,21 @@
   }
   p.tagline b{color:var(--ink); font-weight:500;}
 
+  .visit-counter{
+    display:inline-flex; align-items:center; gap:10px;
+    margin-top:26px; padding:8px 18px;
+    border:1px solid var(--line); background:rgba(201,162,39,.03);
+  }
+  .vc-label{
+    font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--muted);
+  }
+  .vc-num{
+    font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:500;
+    color:var(--gold-soft); letter-spacing:.06em;
+    min-width:2ch; display:inline-block;
+  }
+
   .divider{
     display:flex; align-items:center; gap:14px;
     margin:38px 0;
@@ -288,6 +303,11 @@
     <h1 class="title">ZENIN</h1>
     <div class="kanji-mark">呪 術 変 換</div>
     <p class="tagline">Transforme <b>vídeo</b> ou <b>fotos</b> em <b>GIF</b> direto no navegador — sem upload, sem servidor, sem espera de fila.</p>
+
+    <div class="visit-counter" id="visit-counter">
+      <span class="vc-label">selos registrados</span>
+      <span class="vc-num" id="vc-num">····</span>
+    </div>
   </header>
 
   <div class="divider"><div class="rule"></div><div class="mon"></div><div class="rule"></div></div>
@@ -423,6 +443,39 @@ async function getWorkerScript(){
   GIF_WORKER_BLOB = URL.createObjectURL(blob);
   return GIF_WORKER_BLOB;
 }
+
+/* ---------- contador de visitas ---------- */
+(async function trackVisit(){
+  const vcNum = document.getElementById('vc-num');
+  const NAMESPACE = 'zenin-jjs-luisguylherme';
+  const KEY = 'visitas';
+
+  function animateTo(target){
+    let current = 0;
+    const step = Math.max(1, Math.ceil(target/30));
+    const iv = setInterval(()=>{
+      current += step;
+      if(current >= target){ current = target; clearInterval(iv); }
+      vcNum.textContent = current.toLocaleString('pt-BR');
+    }, 25);
+  }
+
+  try{
+    const res = await fetch('https://api.countapi.xyz/hit/'+NAMESPACE+'/'+KEY);
+    if(!res.ok) throw new Error('countapi falhou');
+    const data = await res.json();
+    animateTo(data.value);
+  }catch(err){
+    try{
+      const res2 = await fetch('https://api.counterapi.dev/v1/'+NAMESPACE+'/'+KEY+'/up');
+      if(!res2.ok) throw new Error('counterapi falhou');
+      const data2 = await res2.json();
+      animateTo(data2.count ?? data2.value ?? 0);
+    }catch(err2){
+      vcNum.textContent = '—';
+    }
+  }
+})();
 
 /* ---------- tab switching ---------- */
 document.querySelectorAll('.tab-btn').forEach(btn=>{
@@ -726,4 +779,3 @@ againPhoto.addEventListener('click', ()=>{
 </script>
 </body>
 </html>
-
